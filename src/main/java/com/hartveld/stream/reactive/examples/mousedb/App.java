@@ -2,7 +2,7 @@ package com.hartveld.stream.reactive.examples.mousedb;
 
 import com.hartveld.stream.reactive.Observable;
 import com.hartveld.stream.reactive.concurrency.Schedulers;
-import com.hartveld.stream.reactive.swing.ReactiveFrame;
+import com.hartveld.stream.reactive.swing.ReactiveSwingFrame;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +22,7 @@ public class App {
 	}
 
 	private static void createGUI() {
-		final ReactiveFrame frame = new ReactiveFrame("Mouse-as-a-Database");
+		final ReactiveSwingFrame frame = new ReactiveSwingFrame("Mouse-as-a-Database");
 		frame.setMinimumSize(new Dimension(640, 480));
 
 //		final AutoCloseable movedSubscription = frame.component.mouseEvents.moved
@@ -37,10 +37,10 @@ public class App {
 //				.map(event -> event.getPoint())
 //				.subscribe(point -> LOG.info("Mouse dragged: {}", point));
 
-		final Observable<MouseEvent> throttled = frame.component.mouseEvents.dragged
+		final Observable<MouseEvent> throttled = frame.component().mouse().dragged()
 				.throttle(10, TimeUnit.MILLISECONDS);
 
-		final Observable<MouseEvent> merged = frame.component.mouseEvents.moved
+		final Observable<MouseEvent> merged = frame.component().mouse().moved()
 				.throttle(10, TimeUnit.MILLISECONDS)
 				.merge(throttled)
 				.throttle(200, TimeUnit.MILLISECONDS);
@@ -49,7 +49,7 @@ public class App {
 				.observeOn(Schedulers.DEFAULT)
 				.subscribe(event -> LOG.info("Event: {}", event));
 
-		frame.window.closing
+		frame.window().closing()
 				.subscribe(event -> {
 					LOG.info("Window closed. Shutting down...");
 
