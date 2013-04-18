@@ -1,6 +1,7 @@
 package com.hartveld.stream.reactive.examples.mousedb;
 
 import static com.hartveld.stream.reactive.concurrency.Schedulers.defaultScheduler;
+
 import com.hartveld.stream.reactive.Observable;
 import com.hartveld.stream.reactive.swing.ReactiveSwingFrame;
 import java.awt.Dimension;
@@ -25,38 +26,24 @@ public class App {
 		final ReactiveSwingFrame frame = new ReactiveSwingFrame("Mouse-as-a-Database");
 		frame.setMinimumSize(new Dimension(640, 480));
 
-//		final AutoCloseable movedSubscription = frame.component.mouseEvents.moved
-//				.throttle(500, TimeUnit.MILLISECONDS)
-//				.observeOn(Schedulers.DEFAULT)
-//				.map(event -> event.getPoint())
-//				.subscribe(p -> LOG.info("Mouse moved: {}", p));
-
-//		final AutoCloseable draggedSubscription = frame.component.mouseEvents.dragged
-//				.throttle(200, TimeUnit.MILLISECONDS)
-//				.observeOn(Schedulers.DEFAULT)
-//				.map(event -> event.getPoint())
-//				.subscribe(point -> LOG.info("Mouse dragged: {}", point));
-
-		final Observable<MouseEvent> throttled = frame.component().mouse().dragged()
-				.throttle(10, TimeUnit.MILLISECONDS);
-
-		final Observable<MouseEvent> merged = frame.component().mouse().moved()
+		final Observable<MouseEvent> events = frame.component().mouse().moved()
 				.throttle(10, TimeUnit.MILLISECONDS)
-				.merge(throttled)
+				.merge(
+					frame.component().mouse().dragged()
+							.throttle(10, TimeUnit.MILLISECONDS)
+				)
 				.throttle(200, TimeUnit.MILLISECONDS);
 
-		final AutoCloseable mergedSubscription = merged
+		final AutoCloseable subscription = events
 				.observeOn(defaultScheduler())
 				.subscribe(event -> LOG.info("Event: {}", event));
 
 		frame.window().closing()
 				.subscribe(event -> {
-					LOG.info("Window closed. Shutting down...");
+					LOG.info("Window closing. Shutting down...");
 
 					try {
-//						movedSubscription.close();
-//						draggedSubscription.close();
-						mergedSubscription.close();
+						subscription.close();
 					} catch (Exception e) {
 						LOG.error("Something went wrong: {}", e.getMessage(), e);
 						System.exit(1);
