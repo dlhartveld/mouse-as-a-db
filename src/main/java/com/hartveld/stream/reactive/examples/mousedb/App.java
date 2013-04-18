@@ -1,7 +1,7 @@
 package com.hartveld.stream.reactive.examples.mousedb;
 
+import static com.hartveld.stream.reactive.concurrency.Schedulers.defaultScheduler;
 import com.hartveld.stream.reactive.Observable;
-import com.hartveld.stream.reactive.concurrency.Schedulers;
 import com.hartveld.stream.reactive.swing.ReactiveSwingFrame;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
@@ -46,7 +46,7 @@ public class App {
 				.throttle(200, TimeUnit.MILLISECONDS);
 
 		final AutoCloseable mergedSubscription = merged
-				.observeOn(Schedulers.DEFAULT)
+				.observeOn(defaultScheduler())
 				.subscribe(event -> LOG.info("Event: {}", event));
 
 		frame.window().closing()
